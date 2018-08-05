@@ -271,6 +271,34 @@ export type Reconciler<C, I, TI> = {
   findHostInstanceWithNoPortals(component: Fiber): I | TI | null,
 };
 
+
+/**
+ * https://github.com/nitin42/Making-a-custom-React-renderer/blob/master/part-one.md
+ * createInstance(type, props, internalInstanceHandle)
+ * 一个组件存在两个 Fiber，flushed fiber and work in progress fiber.
+ * Fiber {
+   tag: fiber 类型
+   key: child 唯一标识
+   type: function/class/module 与这个 fiber 相关联
+   stateNode: 与这个 fiber 相关联的状态
+   ...
+ }
+ * appendInitialChild
+ * prepareUpdate 计算一个实例的差异，暂停或终止部分渲染树，fiber 也可以重用这部分
+ * commitUpdate 提交更新，计算差异
+ * commitMount render the host component
+ * hostContext 树中当前对象的调用
+ * getPublicInstance 
+ * resetTextContent 在插入之前清空父元素
+ * commitTextUpdate 同 commitUpdate，
+ * removeChild/removeChildFromContainer 
+ * insertBefore commitPlacement 钩子，所有节点递归插入，抽象成 getHostSibling
+ * appendChildToContainer
+ * appendChild
+ * shouldSetTextContent
+ * getHostContext 
+ * createTextInstance
+ */
 export default function<T, P, I, TI, HI, PI, C, CC, CX, PL>(
   config: HostConfig<T, P, I, TI, HI, PI, C, CC, CX, PL>,
 ): Reconciler<C, I, TI> {
@@ -349,8 +377,10 @@ export default function<T, P, I, TI, HI, PI, C, CC, CX, PL>(
       );
     }
 
+    // 形成一个 update 对象
     const update = {
       expirationTime,
+      // 要更新的 React 对象
       partialState: {element},
       callback,
       isReplace: false,
@@ -424,6 +454,7 @@ export default function<T, P, I, TI, HI, PI, C, CC, CX, PL>(
   }
 
   return {
+    // ReactRoot
     createContainer(
       containerInfo: C,
       isAsync: boolean,
@@ -438,8 +469,11 @@ export default function<T, P, I, TI, HI, PI, C, CC, CX, PL>(
       parentComponent: ?React$Component<any, any>,
       callback: ?Function,
     ): ExpirationTime {
+      // 当前 container 的 fiber
       const current = container.current;
+      // 当前时间（相对初始化）
       const currentTime = recalculateCurrentTime();
+      // 计算有效期
       const expirationTime = computeExpirationForFiber(current);
       return updateContainerAtExpirationTime(
         element,

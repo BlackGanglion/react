@@ -58,7 +58,7 @@ if (__DEV__) {
     if (callback === null || typeof callback === 'function') {
       return;
     }
-    const key = `${callerName}_${(callback: any)}`;
+    const key = `${callerName}_${callback}`;
     if (!didWarnOnInvalidCallback.has(key)) {
       didWarnOnInvalidCallback.add(key);
       warning(
@@ -124,6 +124,7 @@ export default function(
   const updater = {
     isMounted,
     enqueueSetState(instance, partialState, callback) {
+      // 全局有 fiber 存储
       const fiber = ReactInstanceMap.get(instance);
       callback = callback === undefined ? null : callback;
       if (__DEV__) {
@@ -182,6 +183,7 @@ export default function(
     },
   };
 
+  // 重要，一方面是 shouldComponentUpdate，一方面是 PureReactComponent
   function checkShouldComponentUpdate(
     workInProgress,
     oldProps,
@@ -427,8 +429,10 @@ export default function(
 
   function adoptClassInstance(workInProgress: Fiber, instance: any): void {
     instance.updater = updater;
+    // @Todo fiber stateNode 存实例？
     workInProgress.stateNode = instance;
     // The instance needs access to the fiber so that it can schedule updates
+    // 将实例和 fiber 绑定
     ReactInstanceMap.set(instance, workInProgress);
     if (__DEV__) {
       instance._reactInternalInstance = fakeInternalInstance;
@@ -437,6 +441,7 @@ export default function(
 
   function constructClassInstance(workInProgress: Fiber, props: any): any {
     const ctor = workInProgress.type;
+    // 以下与 context 有关
     const unmaskedContext = getUnmaskedContext(workInProgress);
     const needsContext = isContextConsumer(workInProgress);
     const context = needsContext
@@ -452,6 +457,7 @@ export default function(
       new ctor(props, context); // eslint-disable-line no-new
     }
 
+    // 就是我们平时的 react class 的 constructor 调用，这里可以再看一下 ReactBaseClasses
     const instance = new ctor(props, context);
     const state =
       instance.state !== null && instance.state !== undefined
@@ -547,6 +553,7 @@ export default function(
 
     workInProgress.memoizedState = state;
 
+    // @Todo getDerivedStateFromProps 返回 state？
     const partialState = callGetDerivedStateFromProps(
       workInProgress,
       instance,
@@ -587,6 +594,7 @@ export default function(
 
     stopPhaseTimer();
 
+    // 在 componentWillMount 直接修改 this.state ？
     if (oldState !== instance.state) {
       if (__DEV__) {
         warning(
@@ -643,6 +651,7 @@ export default function(
   ) {
     const {type} = workInProgress;
 
+    // 新的生命周期 getDerivedStateFromProps
     if (typeof type.getDerivedStateFromProps === 'function') {
       if (
         debugRenderPhaseSideEffects ||
@@ -695,6 +704,7 @@ export default function(
     const unmaskedContext = getUnmaskedContext(workInProgress);
 
     instance.props = props;
+    // 这里就与 constructClassInstance 中的  
     instance.state = workInProgress.memoizedState;
     instance.refs = emptyObject;
     instance.context = getMaskedContext(workInProgress, unmaskedContext);
@@ -717,6 +727,7 @@ export default function(
 
     // In order to support react-lifecycles-compat polyfilled components,
     // Unsafe lifecycles should not be invoked for components using the new APIs.
+    // 是否没使用 getDerivedStateFromProps 与 getSnapshotBeforeUpdate，且使用了 componentWillMount
     if (
       typeof ctor.getDerivedStateFromProps !== 'function' &&
       typeof instance.getSnapshotBeforeUpdate !== 'function' &&
@@ -970,6 +981,7 @@ export default function(
       (typeof instance.UNSAFE_componentWillReceiveProps === 'function' ||
         typeof instance.componentWillReceiveProps === 'function')
     ) {
+      // props 或 context 改变都会触发 willReceiveProps
       if (oldProps !== newProps || oldContext !== newContext) {
         callComponentWillReceiveProps(
           workInProgress,

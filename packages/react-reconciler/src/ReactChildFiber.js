@@ -447,6 +447,7 @@ function ChildReconciler(shouldTrackSideEffects) {
     }
   }
 
+  // 创建 Child，根据 Child 的类型
   function createChild(
     returnFiber: Fiber,
     newChild: any,
@@ -833,6 +834,7 @@ function ChildReconciler(shouldTrackSideEffects) {
           // TODO: Move out of the loop. This only happens for the first run.
           resultingFirstChild = newFiber;
         } else {
+          // 这里添加 sibling
           previousNewFiber.sibling = newFiber;
         }
         previousNewFiber = newFiber;
@@ -1128,6 +1130,7 @@ function ChildReconciler(shouldTrackSideEffects) {
       child = child.sibling;
     }
 
+    // <></>
     if (element.type === REACT_FRAGMENT_TYPE) {
       const created = createFiberFromFragment(
         element.props.children,
@@ -1140,6 +1143,7 @@ function ChildReconciler(shouldTrackSideEffects) {
     } else {
       const created = createFiberFromElement(
         element,
+        // @Todo fiber 中的 mode 有什么意义
         returnFiber.mode,
         expirationTime,
       );
@@ -1196,6 +1200,7 @@ function ChildReconciler(shouldTrackSideEffects) {
   // This API will tag the children with the side-effect of the reconciliation
   // itself. They will be added to the side-effect list as we pass through the
   // children and the parent.
+  // 创建 
   function reconcileChildFibers(
     returnFiber: Fiber,
     currentFirstChild: Fiber | null,
@@ -1224,6 +1229,7 @@ function ChildReconciler(shouldTrackSideEffects) {
 
     if (isObject) {
       switch (newChild.$$typeof) {
+        // react element
         case REACT_ELEMENT_TYPE:
           return placeSingleChild(
             reconcileSingleElement(

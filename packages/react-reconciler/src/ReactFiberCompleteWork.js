@@ -171,6 +171,7 @@ export default function<T, P, I, TI, HI, PI, C, CC, CX, PL>(
     let node = workInProgress.child;
     while (node !== null) {
       if (node.tag === HostComponent || node.tag === HostText) {
+        // 添加初始child，调用外部配置 API
         appendInitialChild(parent, node.stateNode);
       } else if (node.tag === HostPortal) {
         // If we have a portal child, then we don't want to traverse
@@ -204,6 +205,7 @@ export default function<T, P, I, TI, HI, PI, C, CC, CX, PL>(
       updateHostContainer = function(workInProgress: Fiber) {
         // Noop
       };
+      // 重要！
       updateHostComponent = function(
         current: Fiber,
         workInProgress: Fiber,
@@ -422,6 +424,7 @@ export default function<T, P, I, TI, HI, PI, C, CC, CX, PL>(
         const updateQueue = workInProgress.updateQueue;
         if (updateQueue !== null && updateQueue.capturedValues !== null) {
           workInProgress.effectTag &= ~DidCapture;
+          // 如果包含 componentDidCatch，那么是如何向上传递的？
           if (typeof instance.componentDidCatch === 'function') {
             workInProgress.effectTag |= ErrLog;
           } else {

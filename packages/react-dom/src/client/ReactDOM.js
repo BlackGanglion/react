@@ -379,8 +379,10 @@ function ReactRoot(container: Container, isAsync: boolean, hydrate: boolean) {
 }
 ReactRoot.prototype.render = function(
   children: ReactNodeList,
+  //  it will be executed after the component is rendered or updated.
   callback: ?() => mixed,
 ): Work {
+  // 获取 root 对象，来自 ReactFilberRoot
   const root = this._internalRoot;
   const work = new ReactWork();
   callback = callback === undefined ? null : callback;
@@ -502,6 +504,15 @@ function shouldAutoFocusHostComponent(type: string, props: Props): boolean {
   return false;
 }
 
+// 由 ReactFiberReconciler 生成的对象
+// https://github.com/nitin42/Making-a-custom-React-renderer/blob/master/part-one.md 参考
+// https://github.com/acdlite/react-fiber-architecture
+// 中文译文：https://blog.yongyuan.us/articles/2017-04-10-react-fiber/
+
+// http://www.ayqy.net/blog/dive-into-react-fiber/
+// http://zxc0328.github.io/2017/09/28/react-16-source/
+// http://blog.codingplayboy.com/2017/12/02/react_fiber/
+// https://zhuanlan.zhihu.com/p/35578843
 const DOMRenderer = ReactFiberReconciler({
   getRootHostContext(rootContainerInstance: Container): HostContext {
     let type;
@@ -556,6 +567,7 @@ const DOMRenderer = ReactFiberReconciler({
     return instance;
   },
 
+  // commitRoot(finishedWork)
   prepareForCommit(): void {
     eventsEnabled = ReactBrowserEventEmitter.isEnabled();
     selectionInformation = ReactInputSelection.getSelectionInformation();
@@ -1041,6 +1053,7 @@ function legacyRenderSubtreeIntoContainer(
   parentComponent: ?React$Component<any, any>,
   children: ReactNodeList,
   container: DOMContainer,
+  // react中出现的"hydrate"这个单词到底是什么意思? - 工业聚的回答 - 知乎 https://www.zhihu.com/question/66068748/answer/238387766
   forceHydrate: boolean,
   callback: ?Function,
 ) {
@@ -1058,6 +1071,7 @@ function legacyRenderSubtreeIntoContainer(
   // member of intersection type." Whyyyyyy.
   let root: Root = (container._reactRootContainer: any);
   if (!root) {
+    // 首次渲染，挂载到 container._reactRootContainer 上
     // Initial mount
     root = container._reactRootContainer = legacyCreateRootFromDOMContainer(
       container,
@@ -1071,6 +1085,7 @@ function legacyRenderSubtreeIntoContainer(
       };
     }
     // Initial mount should not be batched.
+    // 初始化 mount 不应该被批处理
     DOMRenderer.unbatchedUpdates(() => {
       if (parentComponent != null) {
         root.legacy_renderSubtreeIntoContainer(
@@ -1079,6 +1094,7 @@ function legacyRenderSubtreeIntoContainer(
           callback,
         );
       } else {
+        // 当前没有父 component 开始 render children
         root.render(children, callback);
       }
     });
@@ -1161,6 +1177,7 @@ const ReactDOM: Object = {
     );
   },
 
+  // 主入口 ReactDOM.render
   render(
     element: React$Element<any>,
     container: DOMContainer,

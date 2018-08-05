@@ -57,13 +57,21 @@ export type Update<State> = {
 // The work-in-progress queue is always a subset of the current queue.
 //
 // When the tree is committed, the work-in-progress becomes the current.
+// 单一链式更新队列，当一个更新被计划，它会被添加到当前 fiber 队列和工作中的 fiber
+// .first，.next
+// 两个队列分离但共享持久的数据结构
+// 经过调度，更新（fiber）将会从工作中的 fiber 去除，但是会留在当前 fiber 中
+// 这确保了正在工作中的被中止，被中止的更新能从当前队列中恢复过来
+// 工作中的队列始终是当前队列的子集
 export type UpdateQueue<State> = {
   // A processed update is not removed from the queue if there are any
   // unprocessed updates that came before it. In that case, we need to keep
   // track of the base state, which represents the base state of the first
   // unprocessed update, which is the same as the first update in the list.
+  // baseState 代表第一个未处理的更新，与列表中第一个更新一样
   baseState: State,
   // For the same reason, we keep track of the remaining expiration time.
+  // 跟踪剩余时间
   expirationTime: ExpirationTime,
   first: Update<State> | null,
   last: Update<State> | null,
@@ -125,6 +133,7 @@ export function ensureUpdateQueues(fiber: Fiber) {
     // It depends on which fiber is the next current. Initialize with an empty
     // base state, then set to the memoizedState when rendering. Not super
     // happy with this approach.
+    // 创建 fiber 的更新队列
     queue1 = fiber.updateQueue = createUpdateQueue((null: any));
   }
 

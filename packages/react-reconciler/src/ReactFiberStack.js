@@ -7,6 +7,7 @@
  * @flow
  */
 
+// fiber 堆栈
 import type {Fiber} from './ReactFiber';
 
 import warning from 'fbjs/lib/warning';

@@ -218,6 +218,7 @@ export default function<T, P, I, TI, HI, PI, C, CC, CX, PL>(
     }
   }
 
+  // 触发 componentDidMount 与 componentDidUpdate
   function commitLifeCycles(
     finishedRoot: FiberRoot,
     current: Fiber | null,
@@ -226,6 +227,7 @@ export default function<T, P, I, TI, HI, PI, C, CC, CX, PL>(
     committedExpirationTime: ExpirationTime,
   ): void {
     switch (finishedWork.tag) {
+      // 普通的 ClassComponent
       case ClassComponent: {
         const instance = finishedWork.stateNode;
         if (finishedWork.effectTag & Update) {
@@ -255,6 +257,7 @@ export default function<T, P, I, TI, HI, PI, C, CC, CX, PL>(
         }
         return;
       }
+      // Root 节点
       case HostRoot: {
         const updateQueue = finishedWork.updateQueue;
         if (updateQueue !== null) {
@@ -288,10 +291,12 @@ export default function<T, P, I, TI, HI, PI, C, CC, CX, PL>(
 
         return;
       }
+      // 字符串节点
       case HostText: {
         // We have no life-cycles associated with text.
         return;
       }
+      // Portal
       case HostPortal: {
         // We have no life-cycles associated with portals.
         return;
@@ -388,18 +393,6 @@ export default function<T, P, I, TI, HI, PI, C, CC, CX, PL>(
       if (typeof ref === 'function') {
         ref(instanceToUse);
       } else {
-        if (__DEV__) {
-          if (!ref.hasOwnProperty('current')) {
-            warning(
-              false,
-              'Unexpected ref object provided for %s. ' +
-                'Use either a ref-setter function or React.createRef().%s',
-              getComponentName(finishedWork),
-              getStackAddendumByWorkInProgressFiber(finishedWork),
-            );
-          }
-        }
-
         ref.current = instanceToUse;
       }
     }
@@ -684,9 +677,12 @@ export default function<T, P, I, TI, HI, PI, C, CC, CX, PL>(
       parentFiber.effectTag &= ~ContentReset;
     }
 
+    // 
     const before = getHostSibling(finishedWork);
     // We only have the top Fiber that was inserted but we need recurse down its
     // children to find all the terminal nodes.
+
+    // 开始构建 DOM 树
     let node: Fiber = finishedWork;
     while (true) {
       if (node.tag === HostComponent || node.tag === HostText) {

@@ -128,6 +128,7 @@ export default function<T, P, I, TI, HI, PI, C, CC, CX, PL>(
     );
   }
 
+  // 重要
   function reconcileChildrenAtExpirationTime(
     current,
     workInProgress,
@@ -152,6 +153,8 @@ export default function<T, P, I, TI, HI, PI, C, CC, CX, PL>(
 
       // If we had any progressed work already, that is invalid at this point so
       // let's throw it out.
+
+      // child fiber
       workInProgress.child = reconcileChildFibers(
         workInProgress,
         current.child,
@@ -355,6 +358,8 @@ export default function<T, P, I, TI, HI, PI, C, CC, CX, PL>(
         ) {
           instance.render();
         }
+        // 执行 nextChildren 中的 render
+        // nextChildren 实例
         nextChildren = instance.render();
       }
     }
@@ -435,8 +440,10 @@ export default function<T, P, I, TI, HI, PI, C, CC, CX, PL>(
         resetHydrationState();
         return bailoutOnAlreadyFinishedWork(current, workInProgress);
       } else {
+        // root react element
         element = state.element;
       }
+      // root 的 fiberRoot 
       const root: FiberRoot = workInProgress.stateNode;
       if (
         (current === null || current.child === null) &&
@@ -477,6 +484,7 @@ export default function<T, P, I, TI, HI, PI, C, CC, CX, PL>(
     return bailoutOnAlreadyFinishedWork(current, workInProgress);
   }
 
+  // 更新 Children
   function updateHostComponent(current, workInProgress, renderExpirationTime) {
     pushHostContext(workInProgress);
 
@@ -830,7 +838,9 @@ export default function<T, P, I, TI, HI, PI, C, CC, CX, PL>(
           break;
         case ContextProvider:
           // Don't scan deeper if this is a matching provider
+          // 转移
           nextFiber = fiber.type === workInProgress.type ? null : fiber.child;
+          // nextFiber = fiber.child;
           break;
         default:
           // Traverse down.
@@ -1129,14 +1139,18 @@ export default function<T, P, I, TI, HI, PI, C, CC, CX, PL>(
           renderExpirationTime,
         );
       case HostRoot:
+        // 更新 HostRoot
         return updateHostRoot(current, workInProgress, renderExpirationTime);
       case HostComponent:
+        // 更新 HostComponent
+        // React中最常见的抽象节点，是ClassComponent的组成部分。具体的实现取决于React运行的平台。在浏览器环境下就代表DOM节点，可以理解为所谓的虚拟DOM节点。HostComponent中的Host就代码这种组件的具体操作逻辑是由Host环境注入的。
         return updateHostComponent(
           current,
           workInProgress,
           renderExpirationTime,
         );
       case HostText:
+        // 更新 文字 Component
         return updateHostText(current, workInProgress);
       case CallHandlerPhase:
         // This is a restart. Reset the tag to the initial phase.

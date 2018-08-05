@@ -168,6 +168,7 @@ const ReactElement = function(type, key, ref, self, source, owner, props) {
  * Create and return a new ReactElement of the given type.
  * See https://reactjs.org/docs/react-api.html#createelement
  */
+// type 可能直接是一个 class/function，config = props ?
 export function createElement(type, config, children) {
   let propName;
 
@@ -180,16 +181,20 @@ export function createElement(type, config, children) {
   let source = null;
 
   if (config != null) {
+    // config 中的 ref
     if (hasValidRef(config)) {
       ref = config.ref;
     }
+    // config 中的 key
     if (hasValidKey(config)) {
       key = '' + config.key;
     }
 
+    // 何种情况下会包含 self、source
     self = config.__self === undefined ? null : config.__self;
     source = config.__source === undefined ? null : config.__source;
     // Remaining properties are added to a new props object
+    // 去掉内部默认的一些 props（key、ref、__seif、__source）
     for (propName in config) {
       if (
         hasOwnProperty.call(config, propName) &&
@@ -219,6 +224,7 @@ export function createElement(type, config, children) {
   }
 
   // Resolve default props
+  // 处理 defaultProps
   if (type && type.defaultProps) {
     const defaultProps = type.defaultProps;
     for (propName in defaultProps) {

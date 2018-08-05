@@ -777,6 +777,7 @@ describe('ReactNewContext', () => {
     }
   });
 
+  // 有点意思
   it("does not re-render if there's an update in a child", () => {
     const Context = React.createContext(0);
 

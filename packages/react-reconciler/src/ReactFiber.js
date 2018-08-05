@@ -67,6 +67,8 @@ if (__DEV__) {
 
 // A Fiber is work on a Component that needs to be done or was done. There can
 // be more than one per component.
+// fiber 在完成或需要完成的组件上操作，每个组件超过一个
+// fiber 定义
 export type Fiber = {|
   // These first fields are conceptually members of an Instance. This used to
   // be split into a separate type and intersected with the other Fiber fields,
@@ -100,6 +102,8 @@ export type Fiber = {|
   // This is effectively the parent, but there can be multiple parents (two)
   // so this is only the parent of the thing we're currently processing.
   // It is conceptually the same as the return address of a stack frame.
+
+  // 指向fiber树中的父节点
   return: Fiber | null,
 
   // Singly Linked List Tree Structure.
@@ -148,6 +152,12 @@ export type Fiber = {|
   // This is a pooled version of a Fiber. Every fiber that gets updated will
   // eventually have a pair. There are cases when we can clean up pairs to save
   // memory if we need to.
+  // 暂时不明
+  // 因为Fiber在update的时候，会从原来的Fiber（我们称为current）clone出一个新的Fiber（我们称为alternate）。
+  // 两个Fiber diff出的变化（side effect）记录在alternate上。
+  // 所以一个组件在更新时最多会有两个Fiber与其对应，在更新结束后alternate会取代之前的current的成为新的current节点。
+
+  // 在fiber更新时克隆出的镜像fiber，对fiber的修改会标记在这个fiber上
   alternate: Fiber | null,
 
   // Conceptual aliases
@@ -173,6 +183,7 @@ function FiberNode(
   mode: TypeOfMode,
 ) {
   // Instance
+  // 类型 TypeOfWork
   this.tag = tag;
   this.key = key;
   this.type = null;
@@ -317,10 +328,12 @@ export function createFiberFromElement(
   }
 
   let fiber;
+  // class, function, string
   const type = element.type;
   const key = element.key;
   let pendingProps = element.props;
 
+  // fiber tag 表示类型
   let fiberTag;
   if (typeof type === 'function') {
     fiberTag = shouldConstruct(type) ? ClassComponent : IndeterminateComponent;
@@ -388,6 +401,7 @@ export function createFiberFromElement(
     }
   }
 
+  // 创建 fiber 
   fiber = createFiber(fiberTag, pendingProps, key, mode);
   fiber.type = type;
   fiber.expirationTime = expirationTime;

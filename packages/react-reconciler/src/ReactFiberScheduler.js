@@ -79,8 +79,8 @@ import {
 import {createWorkInProgress, assignFiberPropertiesInDEV} from './ReactFiber';
 import {onCommitRoot} from './ReactFiberDevToolsHook';
 import {
-  NoWork,
-  Sync,
+  NoWork, // 0 不工作
+  Sync, // 1 同步
   Never,
   msToExpirationTime,
   expirationTimeToMs,
@@ -162,10 +162,15 @@ if (__DEV__) {
 export default function<T, P, I, TI, HI, PI, C, CC, CX, PL>(
   config: HostConfig<T, P, I, TI, HI, PI, C, CC, CX, PL>,
 ) {
+  // fiber stack（pop、push、createCursor、isEmpty）
   const stack = ReactFiberStack();
+  // HostContext、RootHostContainer、HostContainer 的各种方法
   const hostContext = ReactFiberHostContext(config, stack);
+  // legacyContext
   const legacyContext = ReactFiberLegacyContext(stack);
+  // newContext
   const newContext = ReactFiberNewContext(stack);
+
   const {popHostContext, popHostContainer} = hostContext;
   const {
     popTopLevelContextObject: popTopLevelLegacyContextObject,
@@ -175,6 +180,7 @@ export default function<T, P, I, TI, HI, PI, C, CC, CX, PL>(
   const hydrationContext: HydrationContext<C, CX> = ReactFiberHydrationContext(
     config,
   );
+  
   const {beginWork} = ReactFiberBeginWork(
     config,
     hostContext,
@@ -230,6 +236,7 @@ export default function<T, P, I, TI, HI, PI, C, CC, CX, PL>(
 
   // Represents the current time in ms.
   const originalStartTimeMs = now();
+  // 与 recalculateCurrentTime 有关
   let mostRecentCurrentTime: ExpirationTime = msToExpirationTime(0);
   let mostRecentCurrentTimeMs: number = originalStartTimeMs;
 
@@ -239,6 +246,7 @@ export default function<T, P, I, TI, HI, PI, C, CC, CX, PL>(
   // Represents the expiration time that incoming updates should use. (If this
   // is NoWork, use the default strategy: async updates in async mode, sync
   // updates in sync mode.)
+  // 表示更新使用的到期时间，如果是非工作状态，异步更新用异步模式，同步用同步模式
   let expirationContext: ExpirationTime = NoWork;
 
   let isWorking: boolean = false;
@@ -483,6 +491,7 @@ export default function<T, P, I, TI, HI, PI, C, CC, CX, PL>(
     }
   }
 
+  // 重要
   function commitRoot(finishedWork: Fiber): ExpirationTime {
     isWorking = true;
     isCommitting = true;
@@ -509,6 +518,7 @@ export default function<T, P, I, TI, HI, PI, C, CC, CX, PL>(
     ReactCurrentOwner.current = null;
 
     let firstEffect;
+    // 把 root 加入 effect list
     if (finishedWork.effectTag > PerformedWork) {
       // A fiber's effect list consists only of its children, not itself. So if
       // the root has an effect, we need to add it to the end of the list. The
@@ -528,6 +538,7 @@ export default function<T, P, I, TI, HI, PI, C, CC, CX, PL>(
     prepareForCommit(root.containerInfo);
 
     // Invoke instances of getSnapshotBeforeUpdate before mutation.
+    // @Todo 感觉这块与错误处理有关
     nextEffect = firstEffect;
     startCommitSnapshotEffectsTimer();
     while (nextEffect !== null) {
@@ -578,6 +589,7 @@ export default function<T, P, I, TI, HI, PI, C, CC, CX, PL>(
         }
       } else {
         try {
+          // 与渲染有关
           commitAllHostEffects();
         } catch (e) {
           didError = true;
@@ -704,6 +716,7 @@ export default function<T, P, I, TI, HI, PI, C, CC, CX, PL>(
     // Attempt to complete the current unit of work, then move to the
     // next sibling. If there are no more siblings, return to the
     // parent fiber.
+    // 下一个兄弟节点，没有兄弟节点就返回父节点
     while (true) {
       // The current, flushed, state of this fiber is the alternate.
       // Ideally nothing should rely on this, but relying on it here
@@ -740,6 +753,8 @@ export default function<T, P, I, TI, HI, PI, C, CC, CX, PL>(
           return next;
         }
 
+        // 以下就是 effectTag 的向上传递的过程
+
         if (
           returnFiber !== null &&
           // Do not append effects to parents if a sibling failed to complete
@@ -748,6 +763,7 @@ export default function<T, P, I, TI, HI, PI, C, CC, CX, PL>(
           // Append all the effects of the subtree and this fiber onto the effect
           // list of the parent. The completion order of the children affects the
           // side-effect order.
+          // 将子树的所有效果都添加到父的列表上，workInProgress 是子的，returnFiber 是父
           if (returnFiber.firstEffect === null) {
             returnFiber.firstEffect = workInProgress.firstEffect;
           }
@@ -764,6 +780,10 @@ export default function<T, P, I, TI, HI, PI, C, CC, CX, PL>(
           // to schedule our own side-effect on our own list because if end up
           // reusing children we'll schedule this effect onto itself since we're
           // at the end.
+          // @Todo 没有看懂
+          // 现在看懂了，workInProgress 表示当前的 fiber 的 effectTag
+          // （Placement 来自 reconcoliation child，Update 来自 completeWork），
+          // 即当前
           const effectTag = workInProgress.effectTag;
           // Skip both NoWork and PerformedWork tags when creating the effect list.
           // PerformedWork effect is read by React DevTools but shouldn't be committed.
@@ -771,8 +791,10 @@ export default function<T, P, I, TI, HI, PI, C, CC, CX, PL>(
             if (returnFiber.lastEffect !== null) {
               returnFiber.lastEffect.nextEffect = workInProgress;
             } else {
+              // 重要
               returnFiber.firstEffect = workInProgress;
             }
+            // 重要
             returnFiber.lastEffect = workInProgress;
           }
         }
@@ -871,6 +893,7 @@ export default function<T, P, I, TI, HI, PI, C, CC, CX, PL>(
         workInProgress,
       );
     }
+    // 返回 workInProgress.child
     let next = beginWork(current, workInProgress, nextRenderExpirationTime);
     if (__DEV__) {
       ReactDebugCurrentFiber.resetCurrentFiber();
@@ -886,6 +909,7 @@ export default function<T, P, I, TI, HI, PI, C, CC, CX, PL>(
       ReactFiberInstrumentation.debugTool.onBeginWork(workInProgress);
     }
 
+    // 没有下一个
     if (next === null) {
       // If this doesn't spawn new work, complete the current work.
       next = completeUnitOfWork(workInProgress);
@@ -896,6 +920,7 @@ export default function<T, P, I, TI, HI, PI, C, CC, CX, PL>(
     return next;
   }
 
+  // 核心 DOM 树遍历，模式有关
   function workLoop(isAsync) {
     if (!isAsync) {
       // Flush all expired work.
@@ -920,6 +945,8 @@ export default function<T, P, I, TI, HI, PI, C, CC, CX, PL>(
       'renderRoot was called recursively. This error is likely caused ' +
         'by a bug in React. Please file an issue.',
     );
+
+    // 进入 work
     isWorking = true;
 
     // Check if we're starting from a fresh stack, or if we're resuming from
@@ -933,6 +960,7 @@ export default function<T, P, I, TI, HI, PI, C, CC, CX, PL>(
       resetStack();
       nextRoot = root;
       nextRenderExpirationTime = expirationTime;
+      // 下一个执行的 work
       nextUnitOfWork = createWorkInProgress(
         nextRoot.current,
         null,
@@ -949,6 +977,7 @@ export default function<T, P, I, TI, HI, PI, C, CC, CX, PL>(
       try {
         workLoop(isAsync);
       } catch (thrownValue) {
+        // fiber 抛出错误
         if (nextUnitOfWork === null) {
           // This is a fatal error.
           didFatal = true;
@@ -1194,6 +1223,7 @@ export default function<T, P, I, TI, HI, PI, C, CC, CX, PL>(
     }
 
     let node = fiber;
+    // 循环向上根节点
     while (node !== null) {
       // Walk the parent path to the root and update each node's
       // expiration time.
@@ -1214,6 +1244,7 @@ export default function<T, P, I, TI, HI, PI, C, CC, CX, PL>(
       if (node.return === null) {
         if (node.tag === HostRoot) {
           const root: FiberRoot = (node.stateNode: any);
+          // 中断
           if (
             !isWorking &&
             nextRenderExpirationTime !== NoWork &&
@@ -1232,6 +1263,7 @@ export default function<T, P, I, TI, HI, PI, C, CC, CX, PL>(
             nextRoot !== root
           ) {
             // Add this root to the root schedule.
+            // 将 root 加入根计划
             requestWork(root, expirationTime);
           }
           if (nestedUpdateCount > NESTED_UPDATE_LIMIT) {
@@ -1258,6 +1290,7 @@ export default function<T, P, I, TI, HI, PI, C, CC, CX, PL>(
 
   function recalculateCurrentTime(): ExpirationTime {
     // Subtract initial time so it fits inside 32bits
+    // 当前时间 - 初始化的时间
     mostRecentCurrentTimeMs = now() - originalStartTimeMs;
     mostRecentCurrentTime = msToExpirationTime(mostRecentCurrentTimeMs);
     return mostRecentCurrentTime;
@@ -1307,6 +1340,7 @@ export default function<T, P, I, TI, HI, PI, C, CC, CX, PL>(
   let unhandledError: mixed | null = null;
   let deadline: Deadline | null = null;
 
+  // 在 react 内部有 Batch 机制
   let isBatchingUpdates: boolean = false;
   let isUnbatchingUpdates: boolean = false;
   let isBatchingInteractiveUpdates: boolean = false;
@@ -1346,7 +1380,13 @@ export default function<T, P, I, TI, HI, PI, C, CC, CX, PL>(
 
   // requestWork is called by the scheduler whenever a root receives an update.
   // It's up to the renderer to call renderRoot at some point in the future.
+
+  // 当前如果处于渲染中或者 isBatchingUpdates，比如：didMount，setState，多个 setState，就会加到更新队列
+  // 当前不处于 isBatchingUpdates，直接触发 performWorkOnRoot
   function requestWork(root: FiberRoot, expirationTime: ExpirationTime) {
+    // firstScheduledRoot
+    // lastScheduledRoot
+    // 下面这个要重点看一下
     addRootToSchedule(root, expirationTime);
 
     if (isRendering) {
@@ -1371,6 +1411,7 @@ export default function<T, P, I, TI, HI, PI, C, CC, CX, PL>(
     if (expirationTime === Sync) {
       performSyncWork();
     } else {
+      // 使用 requestIdleCallback
       scheduleCallbackWithExpiration(expirationTime);
     }
   }
@@ -1382,6 +1423,7 @@ export default function<T, P, I, TI, HI, PI, C, CC, CX, PL>(
       // This root is not already scheduled. Add it.
       root.remainingExpirationTime = expirationTime;
       if (lastScheduledRoot === null) {
+        // 全局 firstScheduledRoot 与 lastScheduledRoot 指向 root
         firstScheduledRoot = lastScheduledRoot = root;
         root.nextScheduledRoot = root;
       } else {
@@ -1403,12 +1445,14 @@ export default function<T, P, I, TI, HI, PI, C, CC, CX, PL>(
   }
 
   function findHighestPriorityRoot() {
+    // 最高优先级
     let highestPriorityWork = NoWork;
     let highestPriorityRoot = null;
     if (lastScheduledRoot !== null) {
       let previousScheduledRoot = lastScheduledRoot;
       let root = firstScheduledRoot;
       while (root !== null) {
+        // @Todo 关键，1 说明还要继续从跟节点遍历，0 说明没有更新了
         const remainingExpirationTime = root.remainingExpirationTime;
         if (remainingExpirationTime === NoWork) {
           // This root no longer has work. Remove it from the scheduler.
@@ -1495,6 +1539,8 @@ export default function<T, P, I, TI, HI, PI, C, CC, CX, PL>(
 
     // Keep working on roots until there's no more work, or until the we reach
     // the deadline.
+    // let nextFlushedRoot: FiberRoot | null = null;
+    // let nextFlushedExpirationTime: ExpirationTime = NoWork;
     findHighestPriorityRoot();
 
     if (enableUserTimingAPI && deadline !== null) {
@@ -1520,6 +1566,7 @@ export default function<T, P, I, TI, HI, PI, C, CC, CX, PL>(
         findHighestPriorityRoot();
       }
     } else {
+      // @Todo 针对多树的情况，非常重要
       while (
         nextFlushedRoot !== null &&
         nextFlushedExpirationTime !== NoWork &&
@@ -1606,6 +1653,7 @@ export default function<T, P, I, TI, HI, PI, C, CC, CX, PL>(
         'by a bug in React. Please file an issue.',
     );
 
+    // 进入 render 
     isRendering = true;
 
     // Check if this is async work or sync/expired work.
@@ -1631,6 +1679,7 @@ export default function<T, P, I, TI, HI, PI, C, CC, CX, PL>(
         completeRoot(root, finishedWork, expirationTime);
       } else {
         root.finishedWork = null;
+        // 首次 ReactDOM.render
         finishedWork = renderRoot(root, expirationTime, true);
         if (finishedWork !== null) {
           // We've completed the root. Check the deadline one more time
@@ -1724,6 +1773,7 @@ export default function<T, P, I, TI, HI, PI, C, CC, CX, PL>(
 
   // TODO: Batching should be implemented at the renderer level, not inside
   // the reconciler.
+  // 不进行批更新
   function unbatchedUpdates<A, R>(fn: (a: A) => R, a: A): R {
     if (isBatchingUpdates && !isUnbatchingUpdates) {
       isUnbatchingUpdates = true;

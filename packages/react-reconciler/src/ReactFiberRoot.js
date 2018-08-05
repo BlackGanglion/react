@@ -23,25 +23,35 @@ export type Batch = {
 
 export type FiberRoot = {
   // Any additional information from the host associated with this root.
+
+  // 就是 document.querySelector('#main') 所选择的真实 DOM 节点
   containerInfo: any,
+
   // Used only by persistent updates.
   pendingChildren: any,
+
   // The currently active root fiber. This is the mutable root of the tree.
+  // 当前 fiber 树的根节点
   current: Fiber,
+
   pendingCommitExpirationTime: ExpirationTime,
+
   // A finished work-in-progress HostRoot that's ready to be committed.
   // TODO: The reason this is separate from isReadyForCommit is because the
   // FiberRoot concept will likely be lifted out of the reconciler and into
   // the renderer.
   finishedWork: Fiber | null,
+
   // Top context object, used by renderSubtreeIntoContainer
   context: Object | null,
   pendingContext: Object | null,
   // Determines if we should attempt to hydrate on the initial mount
   +hydrate: boolean,
+
   // Remaining expiration time on this root.
   // TODO: Lift this into the renderer
   remainingExpirationTime: ExpirationTime,
+
   // List of top-level batches. This list indicates whether a commit should be
   // deferred. Also contains completion callbacks.
   // TODO: Lift this into the renderer
@@ -64,6 +74,7 @@ export function createFiberRoot(
     pendingChildren: null,
     pendingCommitExpirationTime: NoWork,
     finishedWork: null,
+    // getContextForSubTree
     context: null,
     pendingContext: null,
     hydrate,

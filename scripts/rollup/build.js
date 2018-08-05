@@ -198,7 +198,8 @@ function getPlugins(
 ) {
   const findAndRecordErrorCodes = extractErrorCodes(errorCodeOpts);
   const forks = Modules.getForks(bundleType, entry);
-  const isProduction = isProductionBundleType(bundleType);
+  // const isProduction = isProductionBundleType(bundleType);
+  const isProduction = true;
   const isInGlobalScope = bundleType === UMD_DEV || bundleType === UMD_PROD;
   const isFBBundle = bundleType === FB_DEV || bundleType === FB_PROD;
   const isRNBundle = bundleType === RN_DEV || bundleType === RN_PROD;
@@ -245,6 +246,7 @@ function getPlugins(
       },
     },
     // Apply dead code elimination and/or minification.
+    /*
     isProduction &&
       closure(
         Object.assign({}, closureOptions, {
@@ -258,6 +260,7 @@ function getPlugins(
           renaming: !shouldStayReadable,
         })
       ),
+      */
     // Add the whitespace back if necessary.
     shouldStayReadable && prettier(),
     // License and haste headers, top-level `if` blocks.

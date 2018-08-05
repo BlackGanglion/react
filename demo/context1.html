@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>react demo</title>
+</head>
+
+<body>
+  <div id="main"></div>
+  <script src="../build/dist/react.production.min.js"></script>
+  <script src="../build/dist/react-dom.production.min.js"></script>
+  <script>
+'use strict';
+
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+// Context lets us pass a value deep into the component tree
+// without explicitly threading it through every component.
+// Create a context for the current theme (with "light" as the default).
+var ThemeContext = React.createContext('light');
+
+var App = function (_React$Component) {
+  _inherits(App, _React$Component);
+
+  function App(props) {
+    _classCallCheck(this, App);
+
+    var _this = _possibleConstructorReturn(this, (App.__proto__ || Object.getPrototypeOf(App)).call(this, props));
+
+    _this.state = {
+      color: 'black'
+    };
+    return _this;
+  }
+
+  _createClass(App, [{
+    key: 'changeColor',
+    value: function changeColor() {
+      this.setState({
+        color: 'red'
+      });
+    }
+  }, {
+    key: 'render',
+    value: function render() {
+      var color = this.state.color;
+
+      return React.createElement(
+        ThemeContext.Provider,
+        { value: color },
+        React.createElement(Toolbar, null),
+        React.createElement(
+          'button',
+          { onClick: this.changeColor.bind(this) },
+          '\u70B9\u51FB'
+        )
+      );
+    }
+  }]);
+
+  return App;
+}(React.Component);
+
+var Toolbar = function (_React$Component2) {
+  _inherits(Toolbar, _React$Component2);
+
+  function Toolbar() {
+    _classCallCheck(this, Toolbar);
+
+    return _possibleConstructorReturn(this, (Toolbar.__proto__ || Object.getPrototypeOf(Toolbar)).apply(this, arguments));
+  }
+
+  _createClass(Toolbar, [{
+    key: 'shouldComponentUpdate',
+    value: function shouldComponentUpdate() {
+      return false;
+    }
+  }, {
+    key: 'render',
+    value: function render() {
+      console.log('render');
+      return React.createElement(
+        'div',
+        null,
+        React.createElement(ThemedButton, null)
+      );
+    }
+  }]);
+
+  return Toolbar;
+}(React.Component);
+
+function ThemedButton(props) {
+  return React.createElement(
+    ThemeContext.Consumer,
+    null,
+    function (theme) {
+      return React.createElement('div', _extends({}, props, {
+        style: { backgroundColor: theme, width: 100, height: 50 }
+      }));
+    }
+  );
+}
+
+ReactDOM.render(React.createElement(App, null), document.querySelector('#main'));
+  </script>
+</body>
+
+</html>
