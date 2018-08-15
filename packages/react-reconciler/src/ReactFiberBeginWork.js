@@ -230,6 +230,7 @@ export default function<T, P, I, TI, HI, PI, C, CC, CX, PL>(
       // It used to be here.
     }
 
+    // 获取 context
     const unmaskedContext = getUnmaskedContext(workInProgress);
     const context = getMaskedContext(workInProgress, unmaskedContext);
 
@@ -263,12 +264,16 @@ export default function<T, P, I, TI, HI, PI, C, CC, CX, PL>(
     if (current === null) {
       if (workInProgress.stateNode === null) {
         // In the initial pass we might need to construct the instance.
+
+        // 初始化
         constructClassInstance(workInProgress, workInProgress.pendingProps);
         mountClassInstance(workInProgress, renderExpirationTime);
 
         shouldUpdate = true;
       } else {
         // In a resume, we'll already have an instance we can reuse.
+
+        // 更新
         shouldUpdate = resumeMountClassInstance(
           workInProgress,
           renderExpirationTime,
@@ -315,6 +320,7 @@ export default function<T, P, I, TI, HI, PI, C, CC, CX, PL>(
     if (!shouldUpdate && !didCaptureError) {
       // Context providers should defer to sCU for rendering
       if (hasContext) {
+        // didChange 为 false
         invalidateContextProvider(workInProgress, false);
       }
 
@@ -409,6 +415,7 @@ export default function<T, P, I, TI, HI, PI, C, CC, CX, PL>(
       );
     } else if (root.context) {
       // Should always be set
+      // 会加入 {}
       pushTopLevelContextObject(workInProgress, root.context, false);
     }
     pushHostContainer(workInProgress, root.containerInfo);

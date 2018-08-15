@@ -764,6 +764,8 @@ export default function(
 
     const oldProps = workInProgress.memoizedProps;
     const newProps = workInProgress.pendingProps;
+
+    // 看一下
     const oldContext = instance.context;
     const newUnmaskedContext = getUnmaskedContext(workInProgress);
     const newContext = getMaskedContext(workInProgress, newUnmaskedContext);
@@ -963,6 +965,7 @@ export default function(
     const oldProps = workInProgress.memoizedProps;
     const newProps = workInProgress.pendingProps;
     const oldContext = instance.context;
+    // 获取 context
     const newUnmaskedContext = getUnmaskedContext(workInProgress);
     const newContext = getMaskedContext(workInProgress, newUnmaskedContext);
 

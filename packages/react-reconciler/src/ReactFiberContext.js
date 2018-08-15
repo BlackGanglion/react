@@ -64,6 +64,7 @@ export default function(stack: Stack): LegacyContext {
   let previousContext: Object = emptyObject;
 
   function getUnmaskedContext(workInProgress: Fiber): Object {
+    // 保留 previousContext，是为了自己使用 context 时，不将自己的 getChildContext 内容混入
     const hasOwnContext = isContextProvider(workInProgress);
     if (hasOwnContext) {
       // If the fiber is a context provider itself, when we read its context
@@ -75,6 +76,7 @@ export default function(stack: Stack): LegacyContext {
     return contextStackCursor.current;
   }
 
+  // 缓存机制
   function cacheContext(
     workInProgress: Fiber,
     unmaskedContext: Object,
@@ -232,6 +234,7 @@ export default function(stack: Stack): LegacyContext {
   }
 
   function pushContextProvider(workInProgress: Fiber): boolean {
+    // 首选判断 childContextTypes 是否存在
     if (!isContextProvider(workInProgress)) {
       return false;
     }
@@ -246,6 +249,7 @@ export default function(stack: Stack): LegacyContext {
 
     // Remember the parent context so we can merge with it later.
     // Inherit the parent's did-perform-work value to avoid inadvertently blocking updates.
+    // 保留 previousContext，是为了自己使用 context 时，不将自己的 getChildContext 内容混入
     previousContext = contextStackCursor.current;
     push(contextStackCursor, memoizedMergedChildContext, workInProgress);
     push(
@@ -268,6 +272,7 @@ export default function(stack: Stack): LegacyContext {
         'This error is likely caused by a bug in React. Please file an issue.',
     );
 
+    // didChange 为 false 时不更新
     if (didChange) {
       // Merge parent and own context.
       // Skip this if we're not updating due to sCU.

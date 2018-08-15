@@ -18,8 +18,8 @@ export type NewContext = {
   popProvider(providerFiber: Fiber): void,
 };
 
-export default function(stack: Stack) {
-  const {createCursor, push, pop} = stack;
+export default function (stack: Stack) {
+  const { createCursor, push, pop } = stack;
 
   const providerCursor: StackCursor<Fiber | null> = createCursor(null);
   const valueCursor: StackCursor<mixed> = createCursor(null);
@@ -44,9 +44,9 @@ export default function(stack: Stack) {
     if (__DEV__) {
       warning(
         context._currentRenderer === null ||
-          context._currentRenderer === rendererSigil,
+        context._currentRenderer === rendererSigil,
         'Detected multiple renderers concurrently rendering the ' +
-          'same context provider. This is currently unsupported.',
+        'same context provider. This is currently unsupported.',
       );
       context._currentRenderer = rendererSigil;
     }
